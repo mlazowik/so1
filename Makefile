@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -std=c99 --pedantic -c
 LDFLAGS = -Wall -std=c99 --pedantic
 
-OBJECTS = err.o
+OBJECTS = err.o vstring.o stack.o converter.o
 ALL = ToONP
 
 all: $(ALL)

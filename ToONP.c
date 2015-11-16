@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #include "err.h"
+#include "converter.h"
 
 void write_string(int write_dsc, char *str) {
     size_t len = strlen(str);
@@ -28,8 +29,6 @@ char* read_string(int read_dsc) {
 
     assert(read_len == sizeof(size_t));
 
-    printf("len = %zd\n", len);
-
     char *str = malloc(sizeof(char) * (len + 1));
 
     if ((read_len = read(read_dsc, str, sizeof(char) * (len + 1))) == -1) {
@@ -40,6 +39,14 @@ char* read_string(int read_dsc) {
 }
 
 void step(char *expr, char *stack, char *partial) {
+    fprintf(stderr, "expr = %s\t", expr);
+    fprintf(stderr, "stack = %s\t", stack);
+    fprintf(stderr, "partial = %s\n", partial);
+
+    if (*expr == '\0') {
+        return;
+    }
+
     pid_t pid;
 
     int send_dsc[2], rcv_dsc[2];
@@ -61,11 +68,17 @@ void step(char *expr, char *stack, char *partial) {
                 syserr("Error in close rcv_dsc[0]\n");
             }
 
-            char *str = read_string(send_dsc[0]);
+            expr = read_string(send_dsc[0]);
+            stack = read_string(send_dsc[0]);
+            partial = read_string(send_dsc[0]);
 
-            printf("%s\n", str);
+            char *next_expr = converter_next_step(expr, &stack, &partial);
 
-            free(str);
+            step(next_expr, stack, partial);
+
+            free(expr);
+            free(stack);
+            free(partial);
 
             exit(0);
 
@@ -79,6 +92,8 @@ void step(char *expr, char *stack, char *partial) {
             }
 
             write_string(send_dsc[1], expr);
+            write_string(send_dsc[1], stack);
+            write_string(send_dsc[1], partial);
 
             if (wait(0) == -1) {
                 syserr("Error in wait");
@@ -91,8 +106,11 @@ void step(char *expr, char *stack, char *partial) {
 int main(int argc, char *argv[]) {
     assert(argc == 2);
 
-    char stack[] = "";
-    char partial[] = "";
+    char *stack = malloc(sizeof(char));
+    stack[0] = '\0';
+
+    char *partial = malloc(sizeof(char));
+    partial[0] = '\0';
 
     step(argv[1], stack, partial);
 

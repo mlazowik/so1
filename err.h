@@ -1,5 +1,5 @@
-#ifndef _ERR_
-#define _ERR_
+#ifndef ERR_H
+#define ERR_H
 
 /* wypisuje informacje o blednym zakonczeniu funkcji systemowej
 i konczy dzialanie */
