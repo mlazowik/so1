@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -ansi --pedantic -c
-LDFLAGS = -Wall -ansi --pedantic
+CFLAGS = -Wall -std=c99 --pedantic -c
+LDFLAGS = -Wall -std=c99 --pedantic
 
 OBJECTS = err.o
 ALL = ToONP
