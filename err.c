@@ -34,3 +34,14 @@ void fatal(const char *fmt, ...) {
     fprintf(stderr,"\n");
     exit(1);
 }
+
+void* emalloc(size_t size) {
+    void* mem = malloc(size);
+
+    if (!mem) {
+        perror("malloc failed");
+        exit(1);
+    }
+
+    return mem;
+}

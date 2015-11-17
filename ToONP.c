@@ -29,7 +29,7 @@ char* read_string(int read_dsc) {
 
     assert(read_len == sizeof(size_t));
 
-    char *str = malloc(sizeof(char) * (len + 1));
+    char *str = emalloc(sizeof(char) * (len + 1));
 
     if ((read_len = read(read_dsc, str, sizeof(char) * (len + 1))) == -1) {
         syserr("Error in read\n");
@@ -38,6 +38,7 @@ char* read_string(int read_dsc) {
     return str;
 }
 
+/* tworzy proces odpowiedzialny za kolejny krok algorytmu */
 void step(char *expr, char *stack, char *partial, int prev_pipe) {
     pid_t pid;
 
@@ -51,6 +52,7 @@ void step(char *expr, char *stack, char *partial, int prev_pipe) {
         case -1:
             syserr("Error in fork\n");
 
+        // potomek
         case 0:
             if (close(send_dsc[1]) == -1) {
                 syserr("Error in close send_dsc[1]\n");
@@ -86,6 +88,7 @@ void step(char *expr, char *stack, char *partial, int prev_pipe) {
 
             return;
 
+        // rodzic
         default:
             if (close(send_dsc[0]) == -1) {
                 syserr("Error in close send_dsc[0]\n");
@@ -109,12 +112,14 @@ void step(char *expr, char *stack, char *partial, int prev_pipe) {
 
             char *res = read_string(rcv_dsc[0]);
 
+            // prev_pipe - lacze zwrotne do poprzedniego procesu
             if (prev_pipe != -1) {
                 write_string(prev_pipe, res);
                 if (close(prev_pipe) == -1) {
                     syserr("Error in close prev_pipe\n");
                 }
             } else {
+                // jesli nie istnieje => jest to pierwszy proces => wypisz wynik
                 fprintf(stderr, "%s\n", res);
             }
 
@@ -127,10 +132,10 @@ void step(char *expr, char *stack, char *partial, int prev_pipe) {
 int main(int argc, char *argv[]) {
     assert(argc == 2);
 
-    char *stack = malloc(sizeof(char));
+    char *stack = emalloc(sizeof(char));
     stack[0] = '\0';
 
-    char *partial = malloc(sizeof(char));
+    char *partial = emalloc(sizeof(char));
     partial[0] = '\0';
 
     step(argv[1], stack, partial, -1);

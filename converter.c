@@ -33,6 +33,7 @@ static bool is_operator(char *token) {
 char* converter_next_step(char *expr, char **stack, char **partial) {
     expr = trim_whitespace(expr);
 
+    // znajdowanie tokena
     size_t len = 0;
 
     while (expr[len] != '\0' && !isspace(expr[len])) {
@@ -48,6 +49,7 @@ char* converter_next_step(char *expr, char **stack, char **partial) {
 
     token[len] = '\0';
 
+    // wlasciwy algorytm
     if (is_operator(token)) {
         int precedence = get_precedence(token[0]);
 
@@ -82,6 +84,7 @@ char* converter_next_step(char *expr, char **stack, char **partial) {
         vstring_append(partial, " ");
     }
 
+    // jesli nie ma juz tokenow do przetworzenia zrzuc operatory ze stosu
     expr = trim_whitespace(expr);
 
     if (*expr == '\0') {
