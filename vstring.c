@@ -5,11 +5,14 @@
 
 static void resize(char **str, size_t len) {
     char *new_str = realloc(*str, sizeof(char) * (len + 1));
+
     if (new_str == NULL) {
         free(*str);
         fprintf(stderr, "Error reallocating memory");
         exit(1);
     }
+
+    *str = new_str;
 }
 
 void vstring_append(char **str, char *suf) {

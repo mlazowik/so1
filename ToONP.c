@@ -38,21 +38,7 @@ char* read_string(int read_dsc) {
     return str;
 }
 
-void step(char *expr, char *stack, char *partial) {
-    fprintf(stderr, "expr = %s\t", expr);
-    fprintf(stderr, "stack = %s\t", stack);
-    fprintf(stderr, "partial = %s\n", partial);
-
-    if (*expr == '\0') {
-        converter_pop_remaining_operators(&stack, &partial);
-
-        fprintf(stderr, "expr = %s\t", expr);
-        fprintf(stderr, "stack = %s\t", stack);
-        fprintf(stderr, "partial = %s\n", partial);
-
-        return;
-    }
-
+void step(char *expr, char *stack, char *partial, int prev_pipe) {
     pid_t pid;
 
     int send_dsc[2], rcv_dsc[2];
@@ -78,15 +64,27 @@ void step(char *expr, char *stack, char *partial) {
             stack = read_string(send_dsc[0]);
             partial = read_string(send_dsc[0]);
 
+            if (close(send_dsc[0]) == -1) {
+                syserr("Error in close send_dsc[0]\n");
+            }
+
             char *next_expr = converter_next_step(expr, &stack, &partial);
 
-            step(next_expr, stack, partial);
+            if (*next_expr != '\0') {
+                step(next_expr, stack, partial, rcv_dsc[1]);
+            } else {
+                write_string(rcv_dsc[1], partial);
+
+                if (close(rcv_dsc[1]) == -1) {
+                    syserr("Error in close rcv_dsc[1]\n");
+                }
+            }
 
             free(expr);
             free(stack);
             free(partial);
 
-            exit(0);
+            return;
 
         default:
             if (close(send_dsc[0]) == -1) {
@@ -101,9 +99,26 @@ void step(char *expr, char *stack, char *partial) {
             write_string(send_dsc[1], stack);
             write_string(send_dsc[1], partial);
 
+            if (close(send_dsc[1]) == -1) {
+                syserr("Error in close send_dsc[1]\n");
+            }
+
             if (wait(0) == -1) {
                 syserr("Error in wait");
             }
+
+            char *res = read_string(rcv_dsc[0]);
+
+            if (prev_pipe != -1) {
+                write_string(prev_pipe, res);
+                if (close(prev_pipe) == -1) {
+                    syserr("Error in close prev_pipe\n");
+                }
+            } else {
+                fprintf(stderr, "%s\n", res);
+            }
+
+            free(res);
 
             exit(0);
     }
@@ -118,7 +133,7 @@ int main(int argc, char *argv[]) {
     char *partial = malloc(sizeof(char));
     partial[0] = '\0';
 
-    step(argv[1], stack, partial);
+    step(argv[1], stack, partial, -1);
 
     return 0;
 }

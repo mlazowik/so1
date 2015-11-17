@@ -1,6 +1,5 @@
 #include <ctype.h>
 #include <string.h>
-#include <stdio.h>
 #include "vstring.h"
 #include "stack.h"
 #include "converter.h"
@@ -43,17 +42,14 @@ char* converter_next_step(char *expr, char **stack, char **partial) {
     char token[len + 1];
 
     for (size_t i = 0; i < len; i++) {
-        token[i] = *expr++;
+        token[i] = *expr;
+        expr++;
     }
 
     token[len] = '\0';
 
     if (is_operator(token)) {
         int precedence = get_precedence(token[0]);
-
-        fprintf(stderr, "%c => %d\n", token[0], precedence);
-        if (!stack_empty(stack))
-        fprintf(stderr, "%c => %d\n", stack_top(stack), get_precedence(stack_top(stack)));
 
         while (!stack_empty(stack)
                && precedence <= get_precedence(stack_top(stack))) {
@@ -86,17 +82,19 @@ char* converter_next_step(char *expr, char **stack, char **partial) {
         vstring_append(partial, " ");
     }
 
-    return expr;
-}
+    expr = trim_whitespace(expr);
 
-void converter_pop_remaining_operators(char **stack, char **partial) {
-    while (!stack_empty(stack)) {
-        char op[2];
+    if (*expr == '\0') {
+        while (!stack_empty(stack)) {
+            char op[2];
 
-        op[0] = stack_pop(stack);
-        op[1] = '\0';
+            op[0] = stack_pop(stack);
+            op[1] = '\0';
 
-        vstring_append(partial, op);
-        vstring_append(partial, " ");
+            vstring_append(partial, op);
+            vstring_append(partial, " ");
+        }
     }
+
+    return expr;
 }
