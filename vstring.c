@@ -25,5 +25,5 @@ void vstring_pop(char **str) {
 
     resize(str, len);
 
-    *str[len] = '\0';
+    (*str)[len] = '\0';
 }

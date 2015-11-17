@@ -44,6 +44,12 @@ void step(char *expr, char *stack, char *partial) {
     fprintf(stderr, "partial = %s\n", partial);
 
     if (*expr == '\0') {
+        converter_pop_remaining_operators(&stack, &partial);
+
+        fprintf(stderr, "expr = %s\t", expr);
+        fprintf(stderr, "stack = %s\t", stack);
+        fprintf(stderr, "partial = %s\n", partial);
+
         return;
     }
 

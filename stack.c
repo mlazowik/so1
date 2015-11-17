@@ -12,12 +12,24 @@ void stack_push(char **stack, char val) {
     vstring_append(stack, tmp);
 }
 
-char stack_pop(char **stack) {
+bool stack_empty(char **stack) {
+    return (*stack)[0] == '\0';
+}
+
+char stack_top(char **stack) {
+    assert(!stack_empty(stack));
+
     size_t len = strlen(*stack);
 
-    assert(len > 0);
+    return (*stack)[len - 1];
+}
 
-    char ret = *stack[len - 1];
+char stack_pop(char **stack) {
+    assert(!stack_empty(stack));
+
+    size_t len = strlen(*stack);
+
+    char ret = (*stack)[len - 1];
 
     vstring_pop(stack);
 
