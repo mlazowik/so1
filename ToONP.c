@@ -7,6 +7,7 @@
 #include <string.h>
 #include "err.h"
 #include "converter.h"
+#include "vstring.h"
 
 void write_string(int write_dsc, char *str) {
     size_t len = strlen(str);
@@ -75,6 +76,10 @@ void step(char *expr, char *stack, char *partial, int prev_pipe) {
             if (*next_expr != '\0') {
                 step(next_expr, stack, partial, rcv_dsc[1]);
             } else {
+                /* Zawsze po tokenie wyjsciowym dodawana jest spacja, wiec
+                   na koncu zostaje jedna nadmiarowa. */
+                vstring_pop(&partial);
+
                 write_string(rcv_dsc[1], partial);
 
                 if (close(rcv_dsc[1]) == -1) {
